@@ -3,7 +3,7 @@ OUTDIR ?= bin
 
 CC      = xcrun -sdk iphoneos cc -arch arm64
 LDID    = ldid
-CFLAGS  = -Wall
+CFLAGS  = -Wall -I./apple_include
 
 .PHONY: all clean
 
@@ -19,7 +19,7 @@ endif
 $(OUTDIR):
 	mkdir -p $(OUTDIR)
 
-$(OUTDIR)/$(TARGET): jailbreakd_client.m | $(OUTDIR)
+$(OUTDIR)/$(TARGET): jailbreakd_client.m libjailbreak_xpc.m | $(OUTDIR)
 	$(CC) -o $@ $^ -framework Foundation $(CFLAGS)
 	$(LDID) -SEnt.plist $@
 

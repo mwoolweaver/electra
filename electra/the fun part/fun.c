@@ -19,6 +19,7 @@
 #include "remap_tfp_set_hsp.h"
 #include <dlfcn.h>
 #include <CommonCrypto/CommonDigest.h>
+#include "xpc_minimal.h"
 
 #define BOOTSTRAP_PREFIX "bootstrap"
 
@@ -368,7 +369,7 @@ do { \
     unlink(tar);
 
     if (enable_tweaks && runUICache){
-        const char *uicache = "/"BOOTSTRAP_PREFIX"/usr/local/bin/uicache";
+        const char *uicache = "/"BOOTSTRAP_PREFIX"/usr/bin/uicache";
         rv = posix_spawn(&pd, uicache, NULL, NULL, (char **)&(const char*[]){ uicache, NULL }, NULL);
         waitpid(pd, NULL, 0);
     }
@@ -414,7 +415,13 @@ do { \
             waitpid(pd, NULL, 0);
             symlink("/usr/lib/SBInject","/"BOOTSTRAP_PREFIX"/Library/SBInject");
         }
+        
+        unlink("/Library/Themes");
+        symlink("/"BOOTSTRAP_PREFIX"/Library/Themes", "/Library/Themes");
     }
+    
+    unlink("/usr/lib/libjailbreak.dylib");
+    cp("/usr/lib/libjailbreak.dylib","/bootstrap/libjailbreak.dylib");
     
     unlink("/bootstrap/unjailbreak.sh");
     cp("/bootstrap/unjailbreak.sh",progname("unjailbreak.sh"));
@@ -428,12 +435,12 @@ do { \
     
     printf("Starting server...\n");
     start_jailbreakd(kernel_base);
-    
+
     while (!file_exists("/var/tmp/jailbreakd.pid")){
         printf("Waiting for jailbreakd...\n");
         usleep(100000); //100 ms
     }
-    
+
     update_springboard_plist();
     
     kill(cfprefsd_pid, SIGKILL);
